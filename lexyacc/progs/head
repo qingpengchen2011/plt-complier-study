@@ -1,0 +1,33 @@
+%{
+int comments, code, whiteSpace;
+%}
+
+%x COMMENT
+
+%%
+^[ \t]*"/*"	{ BEGIN COMMENT;printf("ENTER COMMNET \n"); /* enter comment eating state */ }
+^[ \t]*"/*".*"*/"[ \t]*\n {
+		printf("self-contained\n");
+		 comments++; /* self-contained comment */
+		 }
+
+<COMMENT>"*/"[ \t]*\n	{ BEGIN 0;  comments++;printf("end of COMMENT\n");}
+<COMMENT>"*/"		{ BEGIN 0; }
+<COMMENT>. |
+<COMMENT>\n	{ comments++; printf("COMMENT STATE.\\n %s\n",yytext); }
+
+^[ \t]*\n	{ whiteSpace++; }
+
+.+"/*".*"*/".*\n	{ code++; }
+.*"/*".*"*/".+\n	{ code++; }
+.+"/*".*\n		{ code++; BEGIN COMMENT;printf("enter commnet code\n"); }
+.\n			{ code++; }
+
+.			{printf("mach .\n");} /* ignore everything else */
+%%
+main()
+{
+	yylex();
+	printf("code: %d, comments %d, white space %d\n",
+		code, comments, whiteSpace);
+}
